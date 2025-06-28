@@ -12,12 +12,16 @@ def fix_atlas_filenames(base_dir):
                 with open(path, "r", encoding="utf-8") as f:
                     lines = f.readlines()
                     for line in lines:
-                        if ".png" in line and "#" in line:
-                            fixed_line = line.replace("#", "_")
+                        if ".png" in line:
+                            # แปลงเป็นตัวเล็ก
+                            lower_line = line.lower()
+                            # แก้ # เป็น _
+                            fixed_line = lower_line.replace("#", "_")
                             new_lines.append(fixed_line)
                             changed = True
                             print(f"  Fixed: {line.strip()} -> {fixed_line.strip()}")
                         else:
+                            # บรรทัดอื่นไม่เปลี่ยน
                             new_lines.append(line)
 
                 if changed:
