@@ -33,12 +33,9 @@ def fix_texture_if_needed(folder):
             with Image.open(png_path) as img:
                 img_w, img_h = img.size
                 if img_w != atlas_w or img_h != atlas_h:
-                    print(f"🔧 Resizing {png_path} from {img_w}x{img_h} → {atlas_w}x{atlas_h}")
-                    new_img = Image.new("RGBA", (atlas_w, atlas_h), (0, 0, 0, 0))
-                    new_img.paste(img, (0, 0))
-                    new_img.save(png_path)
-                else:
-                    print(f"✅ {png_path} already correct size ({img_w}x{img_h})")
+                    print(f"🔧 Scaling {png_path} from {img_w}x{img_h} → {atlas_w}x{atlas_h}")
+                    resized = img.resize((atlas_w, atlas_h), Image.BICUBIC)
+                    resized.save(png_path)
 
 def walk_models_folder(models_dir):
     for dirpath, dirnames, filenames in os.walk(models_dir):
@@ -46,5 +43,5 @@ def walk_models_folder(models_dir):
             fix_texture_if_needed(dirpath)
 
 if __name__ == "__main__":
-    MODELS_PATH = "./Models"  # หรือ path เต็ม
+    MODELS_PATH = "./Models" 
     walk_models_folder(MODELS_PATH)
