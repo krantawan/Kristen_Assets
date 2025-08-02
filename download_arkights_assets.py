@@ -174,6 +174,46 @@ def copy_character_images(source_dir, output_dir):
     print(f"มีอยู่แล้ว: {total_existing} ไฟล์")
     print(f"บันทึกไฟล์ในโฟลเดอร์: {output_dir}")
 
+def get_repo_size_info(repo_path):
+    """แสดงขนาดของ repository"""
+    if not os.path.exists(repo_path):
+        return
+    
+    try:
+        # คำนวณขนาดโฟลเดอร์
+        total_size = 0
+        file_count = 0
+        
+        for dirpath, dirnames, filenames in os.walk(repo_path):
+            for filename in filenames:
+                file_path = os.path.join(dirpath, filename)
+                if os.path.exists(file_path):
+                    total_size += os.path.getsize(file_path)
+                    file_count += 1
+        
+        # แปลงขนาดเป็น MB
+        size_mb = total_size / (1024 * 1024)
+        
+        print(f"ขนาด repository: {size_mb:.1f} MB ({file_count:,} ไฟล์)")
+        
+        # แสดงขนาดโฟลเดอร์เฉพาะ
+        assets_path = os.path.join(repo_path, "assets")
+        if os.path.exists(assets_path):
+            assets_size = 0
+            assets_files = 0
+            for dirpath, dirnames, filenames in os.walk(assets_path):
+                for filename in filenames:
+                    file_path = os.path.join(dirpath, filename)
+                    if os.path.exists(file_path):
+                        assets_size += os.path.getsize(file_path)
+                        assets_files += 1
+            
+            assets_size_mb = assets_size / (1024 * 1024)
+            print(f"ขนาดโฟลเดอร์ assets: {assets_size_mb:.1f} MB ({assets_files:,} ไฟล์)")
+        
+    except Exception as e:
+        print(f"ไม่สามารถคำนวณขนาดได้: {e}")
+
 def copy_character_portraits(source_dir, output_dir):
     """คัดลอกรูปภาพ character portraits จากโฟลเดอร์ source ไป output"""
     
@@ -231,7 +271,62 @@ def copy_character_portraits(source_dir, output_dir):
     print(f"มีอยู่แล้ว: {existing} ไฟล์")
     print(f"บันทึกไฟล์ในโฟลเดอร์: {output_dir}")
 
-def get_repo_size_info(repo_path):
+def copy_skills_images(source_dir, output_dir):
+    """คัดลอกรูปภาพ skills จากโฟลเดอร์ source ไป output"""
+    
+    # สร้างโฟลเดอร์ output หากยังไม่มี
+    os.makedirs(output_dir, exist_ok=True)
+    
+    skills_path = os.path.join(source_dir, "assets", "dyn", "arts", "skills")
+    
+    if not os.path.exists(skills_path):
+        print(f"ไม่พบโฟลเดอร์: {skills_path}")
+        return
+    
+    print(f"กำลังสแกนโฟลเดอร์: {skills_path}")
+    
+    # หาไฟล์ .png ทั้งหมดในโฟลเดอร์ skills
+    png_files = glob.glob(os.path.join(skills_path, "*.png"))
+    
+    if not png_files:
+        print("ไม่พบไฟล์ skills")
+        return
+    
+    print(f"พบ {len(png_files)} skill files")
+    
+    copied = 0
+    skipped = 0
+    existing = 0
+    
+    for png_file in png_files:
+        filename = os.path.basename(png_file)
+        
+        # ตรวจสอบว่าควรข้ามไฟล์นี้หรือไม่
+        if should_skip_file(filename):
+            print(f"  ข้าม: {filename} (ลงท้ายด้วย 'b.png')")
+            skipped += 1
+            continue
+        
+        # ตรวจสอบว่าไฟล์มีอยู่แล้วหรือไม่
+        dest_path = os.path.join(output_dir, filename)
+        if os.path.exists(dest_path):
+            print(f"  มีอยู่แล้ว: {filename}")
+            existing += 1
+            continue
+        
+        # คัดลอกไฟล์
+        try:
+            shutil.copy2(png_file, dest_path)
+            print(f"  คัดลอก: {filename}")
+            copied += 1
+        except Exception as e:
+            print(f"  ล้มเหลว: {filename} - {e}")
+    
+    print(f"\n=== สรุปผลการคัดลอก Skills ===")
+    print(f"คัดลอกใหม่: {copied} ไฟล์")
+    print(f"ข้ามไฟล์: {skipped} ไฟล์") 
+    print(f"มีอยู่แล้ว: {existing} ไฟล์")
+    print(f"บันทึกไฟล์ในโฟลเดอร์: {output_dir}")
     """แสดงขนาดของ repository"""
     if not os.path.exists(repo_path):
         return
@@ -277,10 +372,12 @@ def main():
     LOCAL_REPO = "./arknights_partial_repo"
     OPERATORS_DIR = "./Operators"
     PORTRAITS_DIR = "./Portraits"
+    SKILLS_DIR = "./Skills"
     BRANCH = "cn"
     SPARSE_PATHS = [
         "assets/dyn/arts/characters",
-        "assets/dyn/arts/charportraits"
+        "assets/dyn/arts/charportraits",
+        "assets/dyn/arts/skills"
     ]
     
     print("=== Arknights Assets Partial Clone + Sparse Checkout Script ===")
@@ -293,6 +390,7 @@ def main():
     print(f"Output Directories:")
     print(f"  - Characters: {OPERATORS_DIR}")
     print(f"  - Portraits: {PORTRAITS_DIR}")
+    print(f"  - Skills: {SKILLS_DIR}")
     print(f"Filter: ข้ามไฟล์ที่ลงท้ายด้วย 'b.png'")
     print("\n🎯 ใช้ partial clone + sparse checkout เพื่อดาวน์โหลดเฉพาะที่ต้องการ!")
     
@@ -314,10 +412,15 @@ def main():
         print(f"\n=== ขั้นตอนที่ 3: คัดลอกไฟล์ Portraits ===")
         copy_character_portraits(LOCAL_REPO, PORTRAITS_DIR)
         
+        # ขั้นตอนที่ 4: คัดลอกไฟล์ Skills
+        print(f"\n=== ขั้นตอนที่ 4: คัดลอกไฟล์ Skills ===")
+        copy_skills_images(LOCAL_REPO, SKILLS_DIR)
+        
         print(f"\n=== เสร็จสิ้น ===")
         print(f"Repository ถูกเก็บไว้ที่: {LOCAL_REPO}")
         print(f"Characters ถูกบันทึกที่: {OPERATORS_DIR}")
         print(f"Portraits ถูกบันทึกที่: {PORTRAITS_DIR}")
+        print(f"Skills ถูกบันทึกที่: {SKILLS_DIR}")
         print("สามารถรัน script อีกครั้งเพื่ออัปเดตได้เร็วมาก")
         
     except KeyboardInterrupt:
