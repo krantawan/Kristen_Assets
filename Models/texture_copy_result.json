@@ -1,0 +1,13 @@
+{
+  "timestamp": "2025-08-03T16:21:36.969852",
+  "source_texture_dir": "./Spine/Texture2D",
+  "models_dir": "./Models",
+  "summary": {
+    "total_missing": 797,
+    "copied_successfully": 797,
+    "not_found": 0,
+    "already_exists": 0,
+    "copy_errors": 0
+  },
+  "copy_errors": []
+}
