@@ -151,7 +151,7 @@ def resize_images_and_track_missing(base_dir):
                         img_w, img_h = img.size
                         if img_w != atlas_w or img_h != atlas_h:
                             print(f"    🔧 ปรับขนาด: {img_w}x{img_h} -> {atlas_w}x{atlas_h}")
-                            resized = img.resize((atlas_w, atlas_h), Image.LANCZOS)
+                            resized = img.resize((atlas_w, atlas_h), Image.Resampling.LANCZOS)
                             resized.save(png_path)
                             resized_images += 1
                         else:
